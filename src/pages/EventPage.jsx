@@ -13,6 +13,9 @@ export default function EventPage() {
   const [event, setEvent] = useState(null);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formMessage, setFormMessage] = useState("");
+  const [formError, setFormError] = useState("");
 
   useEffect(() => {
     async function getEvent() {
@@ -20,7 +23,7 @@ export default function EventPage() {
         headers,
       });
       const data = await safeJsonResponse(response);
-      setEvent(data[0]);
+      setEvent(Array.isArray(data) ? (data[0] ?? null) : null);
     }
 
     getEvent();
@@ -28,7 +31,41 @@ export default function EventPage() {
 
   async function handleSubmit(eventSubmit) {
     eventSubmit.preventDefault();
-    console.log({ name, email, event: event.title });
+
+    if (!event) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    setFormMessage("");
+    setFormError("");
+
+    try {
+      const response = await fetch(`${SUPABASE_URL}/registrations`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          name,
+          email,
+          status: "Ny",
+          eventTitle: event.title,
+          eventDate: event.date,
+          eventLocation: event.venueName,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Kunne ikke oprette tilmeldingen.");
+      }
+
+      setName("");
+      setEmail("");
+      setFormMessage("Du er nu tilmeldt eventet.");
+    } catch {
+      setFormError("Der skete en fejl. Prøv igen om lidt.");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   if (!event) {
@@ -102,16 +139,37 @@ export default function EventPage() {
               Navn
               <input
                 value={name}
+                required
+                disabled={isSubmitting}
+                autoComplete="name"
                 onChange={(inputEvent) => setName(inputEvent.target.value)}
               />
             </label>
-            <span>E-mail</span>
-            <input
-              value={email}
-              onChange={(inputEvent) => setEmail(inputEvent.target.value)}
-              placeholder="dig@example.com"
-            />
-            <button type="submit">Tilmeld mig</button>
+            <label>
+              E-mail
+              <input
+                value={email}
+                required
+                disabled={isSubmitting}
+                type="email"
+                autoComplete="email"
+                onChange={(inputEvent) => setEmail(inputEvent.target.value)}
+                placeholder="dig@example.com"
+              />
+            </label>
+            {formMessage && (
+              <p className="form-message" role="status">
+                {formMessage}
+              </p>
+            )}
+            {formError && (
+              <p className="form-message" role="alert">
+                {formError}
+              </p>
+            )}
+            <button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "Tilmelder..." : "Tilmeld mig"}
+            </button>
           </form>
         </section>
       </main>
