@@ -1,12 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
-import { safeJsonResponse } from "../utils/safeJson";
-
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const headers = {
-  apikey: import.meta.env.VITE_SUPABASE_APIKEY,
-  "Content-Type": "application/json",
-};
+import { getEvent } from "../api/events";
+import { createRegistration } from "../api/registrations";
 
 export default function EventPage() {
   const { eventId } = useParams();
@@ -18,15 +13,12 @@ export default function EventPage() {
   const [formError, setFormError] = useState("");
 
   useEffect(() => {
-    async function getEvent() {
-      const response = await fetch(`${SUPABASE_URL}/events?id=eq.${eventId}`, {
-        headers,
-      });
-      const data = await safeJsonResponse(response);
-      setEvent(Array.isArray(data) ? (data[0] ?? null) : null);
+    async function loadEvent() {
+      const data = await getEvent(eventId);
+      setEvent(data);
     }
 
-    getEvent();
+    loadEvent();
   }, [eventId]);
 
   async function handleSubmit(eventSubmit) {
@@ -41,22 +33,15 @@ export default function EventPage() {
     setFormError("");
 
     try {
-      const response = await fetch(`${SUPABASE_URL}/registrations`, {
-        method: "POST",
-        headers,
-        body: JSON.stringify({
-          name,
-          email,
-          status: "Ny",
-          eventTitle: event.title,
-          eventDate: event.date,
-          eventLocation: event.venueName,
-        }),
+      await createRegistration({
+        name,
+        email,
+        status: "Ny",
+        eventId: event.id,
+        eventTitle: event.title,
+        eventDate: event.date,
+        eventLocation: event.venueName,
       });
-
-      if (!response.ok) {
-        throw new Error("Kunne ikke oprette tilmeldingen.");
-      }
 
       setName("");
       setEmail("");
