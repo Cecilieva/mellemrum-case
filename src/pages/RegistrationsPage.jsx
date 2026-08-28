@@ -1,29 +1,19 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
-import { safeJsonResponse } from "../utils/safeJson";
-
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const headers = {
-  apikey: import.meta.env.VITE_SUPABASE_APIKEY,
-  "Content-Type": "application/json",
-};
+import { getRegistrations } from "../api/registrations";
 
 export default function RegistrationsPage() {
   const [registrations, setRegistrations] = useState([]);
   const [registrationCount, setRegistrationCount] = useState(0);
 
   useEffect(() => {
-    async function getRegistrations() {
-      const response = await fetch(
-        `${SUPABASE_URL}/registrations?order=createdAt.desc`,
-        { headers },
-      );
-      const data = await safeJsonResponse(response);
+    async function loadRegistrations() {
+      const data = await getRegistrations();
       setRegistrations(Array.isArray(data) ? data : []);
       setRegistrationCount(Array.isArray(data) ? data.length : 0);
     }
 
-    getRegistrations();
+    loadRegistrations();
   }, []);
 
   return (
