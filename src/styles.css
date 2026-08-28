@@ -720,6 +720,101 @@ select:focus {
   overflow: hidden;
 }
 
+.registration-section {
+  min-width: 0;
+}
+
+.registration-toolbar {
+  align-items: end;
+  display: flex;
+  gap: 2rem;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+
+.registration-toolbar h2 {
+  font-size: clamp(1.7rem, 3vw, 2.6rem);
+  letter-spacing: -0.045em;
+  line-height: 1;
+  margin: 0;
+}
+
+.registration-toolbar label {
+  display: grid;
+  font-size: 0.72rem;
+  font-weight: 800;
+  gap: 0.4rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.registration-toolbar select {
+  min-height: 42px;
+}
+
+.registration-table-wrapper {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: 0 8px 26px rgba(23, 32, 29, 0.05);
+  overflow-x: auto;
+}
+
+.registration-table {
+  border-collapse: collapse;
+  min-width: 820px;
+  text-align: left;
+  width: 100%;
+}
+
+.registration-table th,
+.registration-table td {
+  border-bottom: 1px solid var(--line);
+  padding: 1rem 1.2rem;
+  vertical-align: middle;
+}
+
+.registration-table thead th {
+  background: var(--cream);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.registration-table tbody tr:last-child th,
+.registration-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.registration-table tbody th {
+  font-weight: 400;
+}
+
+.registration-table strong,
+.registration-table small {
+  display: block;
+}
+
+.registration-table small {
+  color: #65706c;
+  margin-top: 0.2rem;
+}
+
+.registration-table time {
+  white-space: nowrap;
+}
+
+.sr-only {
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+  height: 1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
 .registration-row {
   align-items: center;
   border-bottom: 1px solid var(--line);
@@ -933,6 +1028,63 @@ select:focus {
 
   .registration-row {
     grid-template-columns: 1fr;
+  }
+
+  .registration-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .registration-toolbar select {
+    width: 100%;
+  }
+
+  .registration-table-wrapper {
+    border-radius: 10px;
+  }
+
+  .registration-table {
+    min-width: 0;
+  }
+
+  .registration-table thead {
+    display: none;
+  }
+
+  .registration-table,
+  .registration-table tbody,
+  .registration-table tr,
+  .registration-table th,
+  .registration-table td {
+    display: block;
+  }
+
+  .registration-table tr {
+    padding: 0.75rem 1rem;
+  }
+
+  .registration-table tbody th,
+  .registration-table tbody td {
+    border-bottom: 0;
+    display: grid;
+    gap: 0.75rem;
+    grid-template-columns: minmax(7rem, 0.8fr) 1fr;
+    padding: 0.45rem 0;
+  }
+
+  .registration-table tbody th::before,
+  .registration-table tbody td::before {
+    color: #65706c;
+    content: attr(data-label);
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .registration-table tbody tr + tr {
+    border-top: 1px solid var(--line);
   }
 
   .registration-labels {

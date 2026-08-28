@@ -38,7 +38,13 @@ export default function RegistrationsPage() {
       <header className="admin-header">
         <p className="eyebrow">Internt overblik</p>
         <h1>Tilmeldinger</h1>
-        <p>{registrationCount} tilmeldinger i alt</p>
+        <p>
+          {isLoading
+            ? "Henter tilmeldinger..."
+            : error
+              ? "Tilmeldinger kunne ikke hentes"
+              : `${registrationCount} tilmeldinger i alt`}
+        </p>
       </header>
       <main>
         {isLoading && (
