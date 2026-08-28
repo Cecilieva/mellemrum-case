@@ -65,7 +65,12 @@ export default function HomePage() {
 
   return (
     <>
-      <header className="hero">
+      <header
+        className="hero"
+        style={{
+          "--hero-image": `url("${import.meta.env.BASE_URL}hero.webp")`,
+        }}
+      >
         <p className="eyebrow">Kultur i Aarhus</p>
         <h1>Find plads til noget nyt.</h1>
         <p className="hero-copy">

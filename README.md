@@ -51,3 +51,9 @@ npm run preview
 ### Branches og commits
 
 Arbejd på én feature branch ad gangen, oprettet fra den aktuelle hovedbranch. Hold ændringerne fokuserede, og lav forståelige commits med korte handlingsbeskrivelser, for eksempel `Tilføj eventfiltrering` eller `Forbedr loading state`. Kør lint og build før merge, og merge først branchen, når den manuelle test er gennemført.
+
+### Performance og Lighthouse
+
+Hero-billedet ligger lokalt som `public/hero.webp` i stedet for at blive hentet fra en ekstern billedtjeneste. Det er komprimeret til WebP og preloadet i `index.html`, så forsiden hurtigere kan vise sit største indholdselement. Referencen bruger Vites `BASE_URL`, så den virker både lokalt og på GitHub Pages.
+
+Mål Lighthouse under samme betingelser før og efter ændringer. Den oprindelige lokale måling var performance-score 63 med en LCP på 5,2 sekunder. Kør målingen både mod `npm run preview` efter `npm run build` og mod den deployede GitHub Pages-version, og notér den nye score og LCP i projektets dokumentation.
