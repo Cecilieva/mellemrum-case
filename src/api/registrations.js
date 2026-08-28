@@ -1,7 +1,9 @@
 import { supabaseRequest } from "./supabase";
 
 export function getRegistrations() {
-  return supabaseRequest("/registrations?order=createdAt.desc");
+  return supabaseRequest(
+    "/registrations?select=*,events(title,date)&order=createdAt.desc",
+  ).catch(() => supabaseRequest("/registrations?order=createdAt.desc"));
 }
 
 export function createRegistration(registration) {

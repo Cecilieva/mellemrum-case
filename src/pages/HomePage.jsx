@@ -1,20 +1,35 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import { getEvents } from "../api/events";
+import AsyncState from "../components/AsyncState";
 
 export default function HomePage() {
   const [events, setEvents] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("Alle");
 
   useEffect(() => {
     async function loadEvents() {
-      const data = await getEvents();
-      setEvents(Array.isArray(data) ? data : []);
+      setIsLoading(true);
+      setHasError(false);
+
+      try {
+        const data = await getEvents();
+        if (!Array.isArray(data)) throw new Error("Invalid events response");
+        setEvents(data);
+      } catch {
+        setEvents([]);
+        setHasError(true);
+      } finally {
+        setIsLoading(false);
+      }
     }
 
     loadEvents();
-  }, []);
+  }, [reloadKey]);
 
   const categories = [
     "Alle",
@@ -88,51 +103,59 @@ export default function HomePage() {
         </section>
 
         <section className="event-grid">
-          {filteredEvents.map((event) => (
-            <article className="event-card" key={event.id}>
-              <img src={event.image} alt="" />
-              <div className="event-card-content">
-                <p className="event-category">{event.category}</p>
-                <h3>{event.title}</h3>
-                <p>{event.summary}</p>
-                <div className="event-meta">
-                  <span>{formatEventDate(event.date)}</span>
-                  <span>{event.venueName}</span>
+          {isLoading && (
+            <AsyncState
+              type="loading"
+              title="Henter events..."
+              message="Vi finder de kommende oplevelser til dig."
+            />
+          )}
+          {hasError && (
+            <AsyncState
+              type="error"
+              title="Events kunne ikke hentes"
+              message="Der opstod et problem. Prøv igen om lidt."
+              onRetry={() => setReloadKey((key) => key + 1)}
+            />
+          )}
+          {!isLoading && !hasError && events.length === 0 && (
+            <AsyncState
+              type="empty"
+              title="Ingen events endnu"
+              message="Der er ikke planlagt nye events lige nu."
+            />
+          )}
+          {!isLoading &&
+            !hasError &&
+            events.length > 0 &&
+            filteredEvents.length === 0 && (
+              <AsyncState
+                type="empty"
+                title="Ingen events matcher din søgning"
+                message="Prøv at ændre din søgning eller vælge en anden kategori."
+              />
+            )}
+          {!isLoading &&
+            !hasError &&
+            filteredEvents.map((event) => (
+              <article className="event-card" key={event.id}>
+                <img src={event.image} alt="" />
+                <div className="event-card-content">
+                  <p className="event-category">{event.category}</p>
+                  <h3>{event.title}</h3>
+                  <p>{event.summary}</p>
+                  <div className="event-meta">
+                    <span>{formatEventDate(event.date)}</span>
+                    <span>{event.venueName}</span>
+                  </div>
+                  <Link className="card-link" to={`/events/${event.id}`}>
+                    Læs mere
+                  </Link>
                 </div>
-                <Link className="card-link" to={`/events/${event.id}`}>
-                  Læs mere
-                </Link>
-              </div>
-            </article>
-          ))}
+              </article>
+            ))}
         </section>
       </main>
-      <footer className="site-footer">
-        <div className="footer-top">
-          <div className="footer-intro">
-            <p className="footer-brand">
-              mellemrum<span>.</span>
-            </p>
-            <p>Udvalgte kulturoplevelser og nye perspektiver på Aarhus.</p>
-          </div>
-          <nav className="footer-links" aria-label="Footer">
-            <div className="footer-link-group">
-              <p className="footer-heading">Udforsk</p>
-              <Link to="/">Events</Link>
-              <Link to="/om">Om Mellemrum</Link>
-            </div>
-            <div className="footer-link-group">
-              <p className="footer-heading">For arrangører</p>
-              <Link to="/tilmeldinger">Se tilmeldinger</Link>
-              <a href="mailto:hej@mellemrum.dk">Kontakt os</a>
-            </div>
-          </nav>
-        </div>
-        <div className="footer-bottom">
-          <p className="footer-meta">© 2026 Mellemrum</p>
-          <p>Aarhus, Danmark</p>
-        </div>
-      </footer>
     </>
   );
 }
