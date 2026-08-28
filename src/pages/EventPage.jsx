@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
 import { safeJsonResponse } from "../utils/safeJson";
+import { AsyncState } from "../components/AsyncState";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const headers = {
@@ -11,6 +12,9 @@ const headers = {
 export default function EventPage() {
   const { eventId } = useParams();
   const [event, setEvent] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -19,15 +23,37 @@ export default function EventPage() {
 
   useEffect(() => {
     async function getEvent() {
-      const response = await fetch(`${SUPABASE_URL}/events?id=eq.${eventId}`, {
-        headers,
-      });
-      const data = await safeJsonResponse(response);
-      setEvent(Array.isArray(data) ? (data[0] ?? null) : null);
+      setIsLoading(true);
+      setHasError(false);
+
+      try {
+        const response = await fetch(
+          `${SUPABASE_URL}/events?id=eq.${eventId}`,
+          {
+            headers,
+          },
+        );
+
+        if (!response.ok) {
+          throw new Error("Request failed");
+        }
+
+        const data = await safeJsonResponse(response);
+        if (!Array.isArray(data)) {
+          throw new Error("Invalid response");
+        }
+
+        setEvent(data[0] ?? null);
+      } catch {
+        setEvent(null);
+        setHasError(true);
+      } finally {
+        setIsLoading(false);
+      }
     }
 
     getEvent();
-  }, [eventId]);
+  }, [eventId, reloadKey]);
 
   async function handleSubmit(eventSubmit) {
     eventSubmit.preventDefault();
@@ -68,8 +94,36 @@ export default function EventPage() {
     }
   }
 
-  if (!event) {
-    return null;
+  if (isLoading || hasError || !event) {
+    return (
+      <main className="event-page state-page">
+        <Link className="back-link" to="/">
+          ← Alle events
+        </Link>
+        {isLoading && (
+          <AsyncState
+            type="loading"
+            title="Henter event..."
+            message="Vi gør siden klar."
+          />
+        )}
+        {hasError && (
+          <AsyncState
+            type="error"
+            title="Eventet kunne ikke hentes"
+            message="Der opstod et problem. Prøv igen om lidt."
+            onRetry={() => setReloadKey((key) => key + 1)}
+          />
+        )}
+        {!isLoading && !hasError && (
+          <AsyncState
+            type="not-found"
+            title="Eventet blev ikke fundet"
+            message="Eventet findes ikke længere eller har aldrig været oprettet."
+          />
+        )}
+      </main>
+    );
   }
 
   const date = new Date(event.date);

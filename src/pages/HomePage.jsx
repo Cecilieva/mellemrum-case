@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import { safeJsonResponse } from "../utils/safeJson";
+import { AsyncState } from "../components/AsyncState";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const headers = {
@@ -10,20 +11,42 @@ const headers = {
 
 export default function HomePage() {
   const [events, setEvents] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("Alle");
 
   useEffect(() => {
     async function getEvents() {
-      const response = await fetch(`${SUPABASE_URL}/events?order=date.asc`, {
-        headers,
-      });
-      const data = await safeJsonResponse(response);
-      setEvents(Array.isArray(data) ? data : []);
+      setIsLoading(true);
+      setHasError(false);
+
+      try {
+        const response = await fetch(`${SUPABASE_URL}/events?order=date.asc`, {
+          headers,
+        });
+
+        if (!response.ok) {
+          throw new Error("Request failed");
+        }
+
+        const data = await safeJsonResponse(response);
+        if (!Array.isArray(data)) {
+          throw new Error("Invalid response");
+        }
+
+        setEvents(data);
+      } catch {
+        setEvents([]);
+        setHasError(true);
+      } finally {
+        setIsLoading(false);
+      }
     }
 
     getEvents();
-  }, []);
+  }, [reloadKey]);
 
   const categories = [
     "Alle",
@@ -97,23 +120,57 @@ export default function HomePage() {
         </section>
 
         <section className="event-grid">
-          {filteredEvents.map((event) => (
-            <article className="event-card" key={event.id}>
-              <img src={event.image} alt="" />
-              <div className="event-card-content">
-                <p className="event-category">{event.category}</p>
-                <h3>{event.title}</h3>
-                <p>{event.summary}</p>
-                <div className="event-meta">
-                  <span>{formatEventDate(event.date)}</span>
-                  <span>{event.venueName}</span>
+          {isLoading && (
+            <AsyncState
+              type="loading"
+              title="Henter events..."
+              message="Vi finder de kommende oplevelser til dig."
+            />
+          )}
+          {hasError && (
+            <AsyncState
+              type="error"
+              title="Events kunne ikke hentes"
+              message="Der opstod et problem. Prøv igen om lidt."
+              onRetry={() => setReloadKey((key) => key + 1)}
+            />
+          )}
+          {!isLoading && !hasError && events.length === 0 && (
+            <AsyncState
+              type="empty"
+              title="Ingen events endnu"
+              message="Der er ikke planlagt nye events lige nu."
+            />
+          )}
+          {!isLoading &&
+            !hasError &&
+            events.length > 0 &&
+            filteredEvents.length === 0 && (
+              <AsyncState
+                type="empty"
+                title="Ingen events matcher din søgning"
+                message="Prøv at ændre din søgning eller vælge en anden kategori."
+              />
+            )}
+          {!isLoading &&
+            !hasError &&
+            filteredEvents.map((event) => (
+              <article className="event-card" key={event.id}>
+                <img src={event.image} alt="" />
+                <div className="event-card-content">
+                  <p className="event-category">{event.category}</p>
+                  <h3>{event.title}</h3>
+                  <p>{event.summary}</p>
+                  <div className="event-meta">
+                    <span>{formatEventDate(event.date)}</span>
+                    <span>{event.venueName}</span>
+                  </div>
+                  <Link className="card-link" to={`/events/${event.id}`}>
+                    Læs mere
+                  </Link>
                 </div>
-                <Link className="card-link" to={`/events/${event.id}`}>
-                  Læs mere
-                </Link>
-              </div>
-            </article>
-          ))}
+              </article>
+            ))}
         </section>
       </main>
       <footer className="site-footer">
