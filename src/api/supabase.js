@@ -10,7 +10,6 @@ export async function supabaseRequest(path, options = {}) {
   if (!SUPABASE_URL || !import.meta.env.VITE_SUPABASE_APIKEY) {
     throw new Error("Supabase configuration is missing");
   }
-
   const response = await fetch(`${SUPABASE_URL}${path}`, {
     ...options,
     headers: {
