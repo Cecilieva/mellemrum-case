@@ -323,25 +323,26 @@ select:focus {
   padding: 1rem;
 }
 
-.filter-empty-state {
+.async-state {
+  background: var(--cream);
   border: 1px solid var(--line);
-  margin-bottom: 2.5rem;
-  padding: 1.25rem;
+  grid-column: 1 / -1;
+  padding: 1.5rem;
 }
 
-.filter-empty-state h2 {
-  font-size: 1.5rem;
+.async-state h2 {
+  font-size: 1.6rem;
   letter-spacing: -0.04em;
   line-height: 1.1;
   margin: 0;
 }
 
-.filter-empty-state p {
+.async-state p {
   color: #53605b;
-  margin: 0.5rem 0 0;
+  margin: 0.75rem 0 0;
 }
 
-.filter-reset-button {
+.state-button {
   background: var(--green);
   border: 0;
   color: white;
