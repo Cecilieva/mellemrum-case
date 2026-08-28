@@ -41,7 +41,7 @@ export default function RegistrationsPage() {
         <p>
           {isLoading
             ? "Henter tilmeldinger..."
-            : error
+            : hasError
               ? "Tilmeldinger kunne ikke hentes"
               : `${registrationCount} tilmeldinger i alt`}
         </p>
