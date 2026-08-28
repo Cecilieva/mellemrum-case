@@ -57,3 +57,69 @@ Arbejd på én feature branch ad gangen, oprettet fra den aktuelle hovedbranch. 
 Hero-billedet ligger lokalt som `public/hero.webp` i stedet for at blive hentet fra en ekstern billedtjeneste. Det er komprimeret til WebP og preloadet i `index.html`, så forsiden hurtigere kan vise sit største indholdselement. Referencen bruger Vites `BASE_URL`, så den virker både lokalt og på GitHub Pages.
 
 Mål Lighthouse under samme betingelser før og efter ændringer. Den oprindelige lokale måling var performance-score 63 med en LCP på 5,2 sekunder. Kør målingen både mod `npm run preview` efter `npm run build` og mod den deployede GitHub Pages-version, og notér den nye score og LCP i projektets dokumentation.
+
+
+## Forbedringer i Case 1
+
+Mellemrum er blevet forbedret med fokus på tilmeldingsflow, robusthed, accessibility, kodekvalitet og deployment.
+
+### Tilmeldingsflow
+
+Tilmeldingsformularen på eventdetaljesiden gemmer nu tilmeldinger i Supabase-tabellen `registrations`.
+
+Formularen:
+
+- sender navn, e-mail, status og oplysninger om det valgte event
+- viser loading-feedback, mens tilmeldingen behandles
+- deaktiverer felter og knap under indsendelse for at undgå dobbelte tilmeldinger
+- viser en succesbesked og nulstiller felterne ved succes
+- viser en brugervenlig fejlbesked, hvis tilmeldingen ikke kan gemmes
+- bruger labels, `required`, `type="email"` og autocomplete-attributter
+
+### Data og UI-states
+
+Siderne håndterer nu de vigtigste tilstande ved datahentning:
+
+- loading, mens events eller tilmeldinger hentes
+- fejlbesked med mulighed for at prøve igen
+- empty state, når der ikke findes data
+- not-found state, hvis et event ikke findes
+- tydelig besked og nulstil-knap, når en søgning ikke giver resultater
+
+### Supabase og kodearkitektur
+
+Supabase-konfiguration og API-kald er samlet, så URL, headers og fetch-logik ikke gentages i flere komponenter.
+
+API-laget er opdelt efter ansvar:
+
+- `src/api/supabase.js` – fælles Supabase-request og konfiguration
+- `src/api/events.js` – hentning af events
+- `src/api/registrations.js` – hentning og oprettelse af tilmeldinger
+
+Dette gør page-komponenterne mere overskuelige, fordi de primært håndterer UI og state.
+
+### Accessibility og navigation
+
+Løsningen er forbedret med fokus på tastaturbrug og forståelig feedback:
+
+- synlig fokusmarkering på links, knapper og formularfelter
+- semantiske labels i formularen
+- status- og fejlbeskeder, der kan læses af skærmlæsere
+- logisk heading-hierarki
+- opdatering af sidetitel ved navigation
+- fokus flyttes til sidens overskrift ved route-skift
+- siden scroller til toppen, når brugeren navigerer til en ny route
+
+### Fælles komponenter og styling
+
+Footeren er samlet i en fælles komponent og vises via det fælles layout i `App.jsx`. Det fjerner gentaget kode og sikrer ens indhold på alle sider.
+
+Styling af loading, fejl, succes og tomme lister er samlet, så feedbackmønstre er konsistente på tværs af løsningen.
+
+## Lokal opsætning
+
+Opret en `.env`-fil i projektets rodmappe:
+
+```env
+VITE_SUPABASE_URL=https://dit-projekt.supabase.co/rest/v1
+VITE_SUPABASE_APIKEY=din-publishable-key
