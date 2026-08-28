@@ -1,16 +1,15 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
-import { safeJsonResponse } from "../utils/safeJson";
-
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const headers = {
-  apikey: import.meta.env.VITE_SUPABASE_APIKEY,
-  "Content-Type": "application/json",
-};
+import { getEvent } from "../api/events";
+import { createRegistration } from "../api/registrations";
+import AsyncState from "../components/AsyncState";
 
 export default function EventPage() {
   const { eventId } = useParams();
   const [event, setEvent] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -18,16 +17,22 @@ export default function EventPage() {
   const [formError, setFormError] = useState("");
 
   useEffect(() => {
-    async function getEvent() {
-      const response = await fetch(`${SUPABASE_URL}/events?id=eq.${eventId}`, {
-        headers,
-      });
-      const data = await safeJsonResponse(response);
-      setEvent(Array.isArray(data) ? (data[0] ?? null) : null);
+    async function loadEvent() {
+      setIsLoading(true);
+      setHasError(false);
+
+      try {
+        setEvent(await getEvent(eventId));
+      } catch {
+        setEvent(null);
+        setHasError(true);
+      } finally {
+        setIsLoading(false);
+      }
     }
 
-    getEvent();
-  }, [eventId]);
+    loadEvent();
+  }, [eventId, reloadKey]);
 
   async function handleSubmit(eventSubmit) {
     eventSubmit.preventDefault();
@@ -41,22 +46,15 @@ export default function EventPage() {
     setFormError("");
 
     try {
-      const response = await fetch(`${SUPABASE_URL}/registrations`, {
-        method: "POST",
-        headers,
-        body: JSON.stringify({
-          name,
-          email,
-          status: "Ny",
-          eventTitle: event.title,
-          eventDate: event.date,
-          eventLocation: event.venueName,
-        }),
+      await createRegistration({
+        name,
+        email,
+        status: "Ny",
+        eventId: event.id,
+        eventTitle: event.title,
+        eventDate: event.date,
+        eventLocation: event.venueName,
       });
-
-      if (!response.ok) {
-        throw new Error("Kunne ikke oprette tilmeldingen.");
-      }
 
       setName("");
       setEmail("");
@@ -68,8 +66,36 @@ export default function EventPage() {
     }
   }
 
-  if (!event) {
-    return null;
+  if (isLoading || hasError || !event) {
+    return (
+      <main className="event-page">
+        <Link className="back-link" to="/">
+          ← Alle events
+        </Link>
+        {isLoading && (
+          <AsyncState
+            type="loading"
+            title="Henter event..."
+            message="Vi gør siden klar."
+          />
+        )}
+        {hasError && (
+          <AsyncState
+            type="error"
+            title="Eventet kunne ikke hentes"
+            message="Der opstod et problem. Prøv igen om lidt."
+            onRetry={() => setReloadKey((key) => key + 1)}
+          />
+        )}
+        {!isLoading && !hasError && (
+          <AsyncState
+            type="not-found"
+            title="Eventet blev ikke fundet"
+            message="Eventet findes ikke længere eller har aldrig været oprettet."
+          />
+        )}
+      </main>
+    );
   }
 
   const date = new Date(event.date);
@@ -173,32 +199,6 @@ export default function EventPage() {
           </form>
         </section>
       </main>
-      <footer className="site-footer">
-        <div className="footer-top">
-          <div className="footer-intro">
-            <p className="footer-brand">
-              mellemrum<span>.</span>
-            </p>
-            <p>Udvalgte kulturoplevelser og nye perspektiver på Aarhus.</p>
-          </div>
-          <nav className="footer-links" aria-label="Footer">
-            <div className="footer-link-group">
-              <p className="footer-heading">Udforsk</p>
-              <Link to="/">Events</Link>
-              <Link to="/om">Om Mellemrum</Link>
-            </div>
-            <div className="footer-link-group">
-              <p className="footer-heading">For arrangører</p>
-              <Link to="/tilmeldinger">Se tilmeldinger</Link>
-              <a href="mailto:hej@mellemrum.dk">Kontakt os</a>
-            </div>
-          </nav>
-        </div>
-        <div className="footer-bottom">
-          <p className="footer-meta">© 2025 Mellemrum</p>
-          <p>Aarhus, Danmark</p>
-        </div>
-      </footer>
     </>
   );
 }
