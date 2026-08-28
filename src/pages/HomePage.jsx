@@ -45,6 +45,13 @@ export default function HomePage() {
     return matchesSearch && matchesCategory;
   });
 
+  const hasActiveFilters = search.trim() !== "" || category !== "Alle";
+
+  function resetFilters() {
+    setSearch("");
+    setCategory("Alle");
+  }
+
   function formatEventDate(eventDate) {
     const date = new Date(eventDate);
     const formattedDate = date.toLocaleDateString("da-DK", {
@@ -101,6 +108,24 @@ export default function HomePage() {
             </select>
           </label>
         </section>
+
+        {hasActiveFilters && filteredEvents.length === 0 && (
+          <section
+            className="message filter-empty-state"
+            aria-live="polite"
+            role="status"
+          >
+            <h2>Ingen events matcher dine filtre</h2>
+            <p>Prøv at søge efter noget andet eller nulstil filtrene.</p>
+            <button
+              className="filter-reset-button"
+              type="button"
+              onClick={resetFilters}
+            >
+              Nulstil søgning og kategori
+            </button>
+          </section>
+        )}
 
         <section className="event-grid">
           {isLoading && (
