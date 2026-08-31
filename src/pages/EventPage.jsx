@@ -1,38 +1,20 @@
-import { useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { Link, useParams } from "react-router";
 import { getEvent } from "../api/events";
 import { createRegistration } from "../api/registrations";
 import AsyncState from "../components/AsyncState";
+import useAsyncData from "../hooks/useAsyncData";
 
 export default function EventPage() {
   const { eventId } = useParams();
-  const [event, setEvent] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [hasError, setHasError] = useState(false);
-  const [reloadKey, setReloadKey] = useState(0);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formMessage, setFormMessage] = useState("");
   const [formError, setFormError] = useState("");
 
-  useEffect(() => {
-    async function loadEvent() {
-      setIsLoading(true);
-      setHasError(false);
-
-      try {
-        setEvent(await getEvent(eventId));
-      } catch {
-        setEvent(null);
-        setHasError(true);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    loadEvent();
-  }, [eventId, reloadKey]);
+  const loadEvent = useCallback(() => getEvent(eventId), [eventId]);
+  const { data: event, isLoading, hasError, retry } = useAsyncData(loadEvent);
 
   async function handleSubmit(eventSubmit) {
     eventSubmit.preventDefault();
@@ -84,7 +66,7 @@ export default function EventPage() {
             type="error"
             title="Eventet kunne ikke hentes"
             message="Der opstod et problem. Prøv igen om lidt."
-            onRetry={() => setReloadKey((key) => key + 1)}
+            onRetry={retry}
           />
         )}
         {!isLoading && !hasError && (
