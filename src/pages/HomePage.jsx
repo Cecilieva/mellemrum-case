@@ -1,35 +1,16 @@
-import { useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { Link } from "react-router";
 import { getEvents } from "../api/events";
 import AsyncState from "../components/AsyncState";
+import useAsyncData from "../hooks/useAsyncData";
 
 export default function HomePage() {
-  const [events, setEvents] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [hasError, setHasError] = useState(false);
-  const [reloadKey, setReloadKey] = useState(0);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("Alle");
 
-  useEffect(() => {
-    async function loadEvents() {
-      setIsLoading(true);
-      setHasError(false);
-
-      try {
-        const data = await getEvents();
-        if (!Array.isArray(data)) throw new Error("Invalid events response");
-        setEvents(data);
-      } catch {
-        setEvents([]);
-        setHasError(true);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    loadEvents();
-  }, [reloadKey]);
+  const loadEvents = useCallback(() => getEvents(), []);
+  const { data, isLoading, hasError, retry } = useAsyncData(loadEvents);
+  const events = Array.isArray(data) ? data : [];
 
   const categories = [
     "Alle",
@@ -145,7 +126,7 @@ export default function HomePage() {
               type="error"
               title="Events kunne ikke hentes"
               message="Der opstod et problem. Prøv igen om lidt."
-              onRetry={() => setReloadKey((key) => key + 1)}
+              onRetry={retry}
             />
           )}
           {!isLoading && !hasError && events.length === 0 && (
