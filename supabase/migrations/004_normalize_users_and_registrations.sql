@@ -21,14 +21,27 @@ set name = excluded.name;
 alter table public.registrations
   add column if not exists "userId" bigint;
 
+alter table public.registrations
+  add column if not exists "eventId" bigint;
+
 update public.registrations as registration
 set "userId" = "user".id
 from public.users as "user"
 where registration."userId" is null
   and lower(trim(registration.email)) = "user".email;
 
+update public.registrations as registration
+set "eventId" = event.id
+from public.events as event
+where registration."eventId" is null
+  and registration."eventTitle" = event.title
+  and registration."eventDate" = event.date;
+
 alter table public.registrations
   alter column "userId" set not null;
+
+alter table public.registrations
+  alter column "eventId" set not null;
 
 do $$
 begin
@@ -44,8 +57,25 @@ begin
   end if;
 end $$;
 
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_constraint
+    where conname = 'registrations_event_id_fkey'
+      and conrelid = 'public.registrations'::regclass
+  ) then
+    alter table public.registrations
+      add constraint registrations_event_id_fkey
+      foreign key ("eventId") references public.events (id);
+  end if;
+end $$;
+
 create index if not exists registrations_user_id_idx
   on public.registrations ("userId");
+
+create index if not exists registrations_event_id_idx
+  on public.registrations ("eventId");
 
 alter table public.registrations
   drop column if exists name,
