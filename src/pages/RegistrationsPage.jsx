@@ -10,6 +10,24 @@ export default function RegistrationsPage() {
   const registrations = Array.isArray(data) ? data : [];
   const registrationCount = registrations.length;
 
+  const groupedRegistrations = registrations.reduce((groups, registration) => {
+    const eventId = registration.eventId ?? registration.eventTitle ?? "ukendt";
+    const eventTitle = registration.eventTitle || "Ukendt event";
+
+    if (!groups[eventId]) {
+      groups[eventId] = {
+        id: eventId,
+        title: eventTitle,
+        registrations: [],
+      };
+    }
+
+    groups[eventId].registrations.push(registration);
+    return groups;
+  }, {});
+
+  const eventGroups = Object.values(groupedRegistrations);
+
   return (
     <>
       <header className="admin-header">
@@ -47,25 +65,41 @@ export default function RegistrationsPage() {
           />
         )}
         {!isLoading && !hasError && registrations.length > 0 && (
-          <div className="registration-list">
-            <div className="registration-row registration-labels">
-              <span>Navn</span>
-              <span>Event</span>
-              <span>Dato</span>
-              <span>Status</span>
-            </div>
-            {registrations.map((registration) => (
-              <div className="registration-row" key={registration.id}>
-                <div>
-                  <strong>{registration.name}</strong>
-                  <small>{registration.email}</small>
+          <div className="registration-groups">
+            {eventGroups.map((group) => (
+              <section className="registration-group" key={group.id}>
+                <h2>{group.title}</h2>
+                <div className="registration-table-wrapper">
+                  <table className="registration-table">
+                    <thead>
+                      <tr>
+                        <th scope="col">Navn</th>
+                        <th scope="col">E-mail</th>
+                        <th scope="col">Dato</th>
+                        <th scope="col">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {group.registrations.map((registration) => (
+                        <tr key={registration.id}>
+                          <td>{registration.name}</td>
+                          <td>{registration.email}</td>
+                          <td>
+                            {new Date(
+                              registration.eventDate,
+                            ).toLocaleDateString("da-DK")}
+                          </td>
+                          <td>
+                            <span className="status">
+                              {registration.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
-                <span>{registration.eventTitle}</span>
-                <span>
-                  {new Date(registration.eventDate).toLocaleDateString("da-DK")}
-                </span>
-                <span className="status">{registration.status}</span>
-              </div>
+              </section>
             ))}
           </div>
         )}
