@@ -51,16 +51,31 @@ Mellemrum er blevet forbedret med fokus på tilmeldingsflow, robusthed, accessib
 
 ### Tilmeldingsflow
 
-Tilmeldingsformularen på eventdetaljesiden gemmer nu tilmeldinger i Supabase-tabellen `registrations`.
+Tilmeldingsformularen på eventdetaljesiden gemmer brugere, events og tilmeldinger som adskilte data i Supabase.
 
 Formularen:
 
-- sender navn, e-mail, status og oplysninger om det valgte event
+- opretter eller opdaterer brugeren ud fra e-mailadressen
+- gemmer en tilmelding med `userId`, `eventId` og status
 - viser loading-feedback, mens tilmeldingen behandles
 - deaktiverer felter og knap under indsendelse for at undgå dobbelte tilmeldinger
 - viser en succesbesked og nulstiller felterne ved succes
 - viser en brugervenlig fejlbesked, hvis tilmeldingen ikke kan gemmes
 - bruger labels, `required`, `type="email"` og autocomplete-attributter
+
+### Datamodel: users, events og registrations
+
+Datamodellen undgår at gemme de samme oplysninger flere gange:
+
+```text
+users.id  ← registrations.userId →  registrations.eventId → events.id
+```
+
+- `users` gemmer brugerens navn og e-mail én gang.
+- `events` gemmer oplysninger om hvert event én gang.
+- `registrations` gemmer kun tilmeldingens status, oprettelsesdato og forbindelserne til bruger og event.
+
+Det betyder, at et navneskift kun skal rettes i `users`. Alle tilmeldinger med den samme `userId` viser derefter det opdaterede navn. De eksisterende data blev flyttet til strukturen gennem SQL-migrationerne i `supabase/migrations/`.
 
 ### Data og UI-states
 
@@ -80,6 +95,7 @@ API-laget er opdelt efter ansvar:
 
 - `src/api/supabase.js` – fælles Supabase-request og konfiguration
 - `src/api/events.js` – hentning af events
+- `src/api/users.js` – oprettelse eller opdatering af brugere ud fra e-mail
 - `src/api/registrations.js` – hentning og oprettelse af tilmeldinger
 
 Dette gør page-komponenterne mere overskuelige, fordi de primært håndterer UI og state.
