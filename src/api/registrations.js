@@ -2,13 +2,16 @@ import { supabaseRequest } from "./supabase";
 
 export function getRegistrations() {
   return supabaseRequest(
-    "/registrations?select=*,events(title,date)&order=createdAt.desc",
-  ).catch(() => supabaseRequest("/registrations?order=createdAt.desc"));
+    "/registrations?select=id,createdAt,status,userId,eventId,users(name,email),events(title,date)&order=createdAt.desc",
+  );
 }
 
-export function createRegistration(registration) {
+export function createRegistration({ userId, eventId, status }) {
   return supabaseRequest("/registrations", {
     method: "POST",
-    body: JSON.stringify(registration),
+    headers: {
+      Prefer: "return=representation",
+    },
+    body: JSON.stringify({ userId, eventId, status }),
   });
 }

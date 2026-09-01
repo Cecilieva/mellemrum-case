@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 import { Link, useParams } from "react-router";
 import { getEvent } from "../api/events";
 import { createRegistration } from "../api/registrations";
+import { upsertUser } from "../api/users";
 import AsyncState from "../components/AsyncState";
 import useAsyncData from "../hooks/useAsyncData";
 
@@ -28,14 +29,12 @@ export default function EventPage() {
     setFormError("");
 
     try {
+      const user = await upsertUser({ name, email });
+
       await createRegistration({
-        name,
-        email,
+        userId: user.id,
         status: "Ny",
         eventId: event.id,
-        eventTitle: event.title,
-        eventDate: event.date,
-        eventLocation: event.venueName,
       });
 
       setName("");

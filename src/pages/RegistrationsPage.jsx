@@ -11,8 +11,8 @@ export default function RegistrationsPage() {
   const registrationCount = registrations.length;
 
   const groupedRegistrations = registrations.reduce((groups, registration) => {
-    const eventId = registration.eventId ?? registration.eventTitle ?? "ukendt";
-    const eventTitle = registration.eventTitle || "Ukendt event";
+    const eventId = registration.eventId ?? "ukendt";
+    const eventTitle = registration.events?.title ?? "Ukendt event";
 
     if (!groups[eventId]) {
       groups[eventId] = {
@@ -82,12 +82,12 @@ export default function RegistrationsPage() {
                     <tbody>
                       {group.registrations.map((registration) => (
                         <tr key={registration.id}>
-                          <td>{registration.name}</td>
-                          <td>{registration.email}</td>
+                          <td>{registration.users?.name}</td>
+                          <td>{registration.users?.email}</td>
                           <td>
-                            {new Date(
-                              registration.eventDate,
-                            ).toLocaleDateString("da-DK")}
+                            {new Date(registration.events?.date).toLocaleDateString(
+                              "da-DK",
+                            )}
                           </td>
                           <td>
                             <span className="status">
