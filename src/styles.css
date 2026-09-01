@@ -130,7 +130,7 @@ select {
 .hero h1,
 .page-header h1 {
   font-size: clamp(3.2rem, 8vw, 7.5rem);
-  letter-spacing: -0.075em;
+  letter-spacing: 0;
   line-height: 0.9;
   margin: 0;
   max-width: 12ch;
@@ -176,7 +176,7 @@ main {
 .section-heading h2,
 .signup-panel h2 {
   font-size: clamp(2.2rem, 4vw, 4rem);
-  letter-spacing: -0.055em;
+  letter-spacing: 0;
   line-height: 1;
   margin: 0;
 }
