@@ -712,6 +712,23 @@ select:focus {
   margin: 0;
 }
 
+.registration-groups {
+  display: grid;
+  gap: 2rem;
+}
+
+.registration-group {
+  display: grid;
+  gap: 1rem;
+}
+
+.registration-group h2 {
+  font-size: clamp(1.8rem, 3vw, 2.8rem);
+  letter-spacing: -0.045em;
+  line-height: 1;
+  margin: 0;
+}
+
 .registration-list {
   background: white;
   border: 1px solid var(--line);
@@ -1042,26 +1059,12 @@ select:focus {
 
   .registration-table-wrapper {
     border-radius: 10px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .registration-table {
-    min-width: 0;
-  }
-
-  .registration-table thead {
-    display: none;
-  }
-
-  .registration-table,
-  .registration-table tbody,
-  .registration-table tr,
-  .registration-table th,
-  .registration-table td {
-    display: block;
-  }
-
-  .registration-table tr {
-    padding: 0.75rem 1rem;
+    min-width: 720px;
   }
 
   .registration-table tbody th,
